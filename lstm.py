@@ -128,7 +128,7 @@ def training(fgw, igw, cgw, ogw, l, cellstate, training_1, training_2, training_
     fgw, igw, cgw, ogw, l = Back_propagation(fgw, igw, cgw, ogw, l, training_1, training_2, training_3, f_out, f_output, error_in_output,
                           error_in_cell)
 
-    return f_output
+    return fgw, igw, cgw, ogw, l, f_output
 
 
 def testing(cellstate, testing_1, testing_2, testing_3):
@@ -203,7 +203,7 @@ train_cycles = 100
 for c in range(train_cycles):
     print("Training cycle: "+str(c))
 for n in training_1:
-    training_prediction = training(fgw, igw, cgw, ogw, l, cellstate, training_1, training_2, training_3, training_y)
+    fgw, igw, cgw, ogw, l, training_prediction = training(fgw, igw, cgw, ogw, l, cellstate, training_1, training_2, training_3, training_y)
 
 # Determinning errors
 
