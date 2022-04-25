@@ -2,15 +2,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# plotting of graphs
-def plot_graphs(real_value, training_data, test_data):
-    plt.plot(real_value, label="The actual value", color="red")
-    plt.plot(training_data, label="Prediction on training data", color='blue')
-    test_data = [j for j in test_data]
+
+###############################################################################
+# function: plot_graphs
+#
+# purpose : To plot the prediction vs actual value graphs
+#
+# inputs  : oRealValNp - The target values
+#           oTrainPredNp - The training predictions
+#           oTestPredNp - The testing predictions
+#
+# outputs : plotted graphs
+###############################################################################
+def plot_graphs(oRealValNp, oTrainPredNp, oTestPredNp):
+    plt.plot(oRealValNp, label="The actual value", color="red")
+    plt.plot(oTrainPredNp, label="Prediction on training data", color='blue')
+    oTestPredNp = [j for j in oTestPredNp]
     # connecting training and testing lines
-    test_data.insert(0, training_data[-1])
+    oTestPredNp.insert(0, oTrainPredNp[-1])
     # X values for testing prediction plot
-    plt.plot([x for x in range(len(training_data) - 1, len(training_data) + len(test_data) - 1)], test_data, label="Prediction on testing data", color='green')
+    plt.plot([x for x in range(len(oTrainPredNp) - 1, len(oTrainPredNp) +
+             len(oTestPredNp) - 1)], oTestPredNp, label="Prediction on testing data",
+             color='green')
     plt.xlabel("Time period in Days")
     plt.ylabel("Stock Price")
     plt.title("Stock $ Prediction")
@@ -19,247 +32,411 @@ def plot_graphs(real_value, training_data, test_data):
     plt.show()
 
 
-def error_function(real_Value,predicted_Value):
-    #squared error
-    sse=((real_Value- predicted_Value)**2)
-    #mean squared error
-    mean_squared_error= np.mean(sse)
-    #root mean squared error
-    root_mean_squared_error=np.sqrt(mean_squared_error)
-    
-    return mean_squared_error,root_mean_squared_error
+###############################################################################
+# function: error_function
+#
+# purpose : To calculate the MSE and RMSE
+#
+# inputs  : oTargetNp - The target values
+#           oPredNp - The predicted values
+#
+# outputs : fMSE - The MSE value
+#           fRMSE - The RMSE value
+###############################################################################
+def error_function(oTargetNp, oPredNp):
+    # squared error
+    oSSENp = ((oTargetNp - oPredNp)**2)
+    # mean squared error
+    fMSE = np.mean(oSSENp)
+    # root mean squared error
+    fRMSE = np.sqrt(fMSE)
 
-def sigmoid_activation_function(x):
-    sigmoid = 1/(1+np.exp(-x))
-    return sigmoid
-
-# Defining the tanh activation function to be used at input gates
-
-
-def tanh_activation_function(x):
-    tanh = 1 - np.square(np.tanh(x))
-    return tanh
-
-def experiment(url, column):
-
-    def ForgetGate(cellstate, input_from_gate, output=1):
-        input_from_gate = np.dot(fgw, input_from_gate)
-        input_from_gate = output * input_from_gate
-        output_to_gate = sigmoid_activation_function(input_from_gate)
-        cellstate = cellstate * output_to_gate
+    return fMSE, fRMSE
 
 
-    def InputGate(cellstate, input_from_gate, output=1):
-        input_from_gate_1 = (np.dot(igw, input_from_gate))*output
-        input_from_gate_2 = np.dot(cgw, input_from_gate)*output
-        output_to_gate = sigmoid_activation_function(
-            input_from_gate_1) * tanh_activation_function(input_from_gate_2)
-        cellstate = cellstate + output_to_gate
+###############################################################################
+# function: sigmoid_activation_function
+#
+# purpose : To calculate sigmoid of input
+#
+# inputs  : oInpNp - The input value
+#
+# outputs : oSigOutNp - The value of sigmoid output
+###############################################################################
+def sigmoid_activation_function(oInpNp):
+    oSigOutNp = 1/(1+np.exp(-oInpNp))
+    return oSigOutNp
 
 
-    def OutputGate(cellstate, input_from_gate, output=1):
-        input_from_gate = np.dot(ogw, input_from_gate)
-        input_from_gate = output * input_from_gate
-        output_to_gate = sigmoid_activation_function(input_from_gate)
-        output = tanh_activation_function(cellstate) * output_to_gate
+###############################################################################
+# function: tanh_activation_function
+#
+# purpose : To calculate tanh of input
+#
+# inputs  : oInpNp - The input value
+#
+# outputs : oTanHOutNp - The value of tanh output
+###############################################################################
+def tanh_activation_function(oInpNp):
+    oTanHOutNp = 1 - np.square(np.tanh(oInpNp))
+    return oTanHOutNp
 
-        return output
 
+###############################################################################
+# function: train_on_dataset
+#
+# purpose : To train the RNN on a given dataset
+#
+# inputs  : sURL - The path to the dataset
+#           sColumn - The feature to be used for training
+#
+# outputs : The prediction vs target graphs
+###############################################################################
+def train_on_dataset(sURL, sColumn):
 
-    def forward_propagation(cellstate, inp_1, inp_2, inp_3):
-        cellstate = [[1, 1] for j in range(len(inp_1[0]))]
-        cellstate = np.array(cellstate, dtype=float)
-        cellstate = np.array(cellstate, ndmin=2).T
+    ###############################################################################
+    # function: forget_gate
+    #
+    # purpose : To create the first cell in LSTM network
+    #
+    # inputs  : oCellStateNp - The state of the cell
+    #           oGateInput - The input from the gate
+    #           oGateOutput - The output of the gate
+    #
+    # outputs : The updated cell state
+    ###############################################################################
+    def forget_gate(oCellStateNp, oGateInput, oGateOutput=1):
+        oGateInput = np.dot(oFGWNp, oGateInput)
+        oGateInput = oGateOutput * oGateInput
+        oOutToGate = sigmoid_activation_function(oGateInput)
+        oCellStateNp = oCellStateNp * oOutToGate
+
+    ###############################################################################
+    # function: input_gate
+    #
+    # purpose : To create the second cell in LSTM network
+    #
+    # inputs  : oCellStateNp - The state of the cell
+    #           oGateInput - The input from the gate
+    #           oGateOutput - The output of the gate
+    #
+    # outputs : The updated cell state
+    ###############################################################################
+    def input_gate(oCellStateNp, oGateInput, oGateOutput=1):
+        oInpFromGate1 = (np.dot(oIGWNp, oGateInput))*oGateOutput
+        oInpFromGate2 = np.dot(oCGWNp, oGateInput)*oGateOutput
+        oOutToGate = sigmoid_activation_function(
+            oInpFromGate1) * tanh_activation_function(oInpFromGate2)
+        oCellStateNp = oCellStateNp + oOutToGate
+
+    ###############################################################################
+    # function: output_gate
+    #
+    # purpose : To create the third cell in LSTM network
+    #
+    # inputs  : oCellStateNp - The state of the cell
+    #           oGateInput - The input from the gate
+    #           oGateOutput - The output of the gate
+    #
+    # outputs : The updated cell state
+    ###############################################################################
+    def output_gate(oCellStateNp, oGateInput, oGateOutput=1):
+        oGateInput = np.dot(oOGWNp, oGateInput)
+        oGateInput = oGateOutput * oGateInput
+        oOutToGate = sigmoid_activation_function(oGateInput)
+        oGateOutput = tanh_activation_function(oCellStateNp) * oOutToGate
+
+        return oGateOutput
+
+    ###############################################################################
+    # function: forward_propagation
+    #
+    # purpose : To perform the forward propagation step in the network
+    #
+    # inputs  : oCellStateNp - The state of the cell
+    #           oTrainDay12 - Data of the first two days
+    #           oTrainDay34 - Data of the third and fourth day
+    #           oTrainDay56 - Data of the fifth and sixth day
+    #
+    # outputs : oFinalOut - Output of the neural network
+    #           oCellOutput - Output of the final cell
+    ###############################################################################
+    def forward_propagation(oCellStateNp, oTrainDay12, oTrainDay34, oTrainDay56):
+        oCellStateNp = [[1, 1] for j in range(len(oTrainDay12[0]))]
+        oCellStateNp = np.array(oCellStateNp, dtype=float)
+        oCellStateNp = np.array(oCellStateNp, ndmin=2).T
         # Input is passed through first cell in lstm network
-        ForgetGate(cellstate, inp_1)
-        InputGate(cellstate, inp_1)
-        output = OutputGate(cellstate, inp_1)
+        forget_gate(oCellStateNp, oTrainDay12)
+        input_gate(oCellStateNp, oTrainDay12)
+        oCellOutput = output_gate(oCellStateNp, oTrainDay12)
         # Input is passed through second cell in lstm network
-        ForgetGate(cellstate, inp_2, output)
-        InputGate(cellstate, inp_2, output)
-        output = OutputGate(cellstate, inp_2, output)
+        forget_gate(oCellStateNp, oTrainDay34, oCellOutput)
+        input_gate(oCellStateNp, oTrainDay34, oCellOutput)
+        oCellOutput = output_gate(oCellStateNp, oTrainDay34, oCellOutput)
         # Input is passed through third cell in lstm network
-        ForgetGate(cellstate, inp_3, output)
-        InputGate(cellstate, inp_3, output)
-        output = OutputGate(cellstate, inp_3, output)
+        forget_gate(oCellStateNp, oTrainDay56, oCellOutput)
+        input_gate(oCellStateNp, oTrainDay56, oCellOutput)
+        oCellOutput = output_gate(oCellStateNp, oTrainDay56, oCellOutput)
         # Dot product of output weights and final cell's output
-        f_input = np.dot(l, output)
+        oFinalInp = np.dot(oLCWNp, oCellOutput)
         # output of the neural network
-        f_output = sigmoid_activation_function(f_input)
-        return f_output, output
+        oFinalOut = sigmoid_activation_function(oFinalInp)
+        return oFinalOut, oCellOutput
 
+    ###############################################################################
+    # function: errors
+    #
+    # purpose : To calculate the errors in the network
+    #
+    # inputs  : oTargetNp - The value of the target variable
+    #           oFinalOut - The output given by the network
+    #
+    # outputs : oOutputError - Error of the output layer
+    #           oHiddenError - Error of the hidden layer
+    ###############################################################################
+    def errors(oTargetNp, oFinalOut):
+        oOutputError = oTargetNp - oFinalOut
+        oHiddenError = np.dot(oLCWNp.T, oOutputError)
+        return oOutputError, oHiddenError
 
-    def errors(targeted_output, f_output):
-        error_in_output = targeted_output - f_output
-        error_in_hiddenlayer = np.dot(l.T, error_in_output)
-        return error_in_output, error_in_hiddenlayer
+    ###############################################################################
+    # function: back_propagation
+    #
+    # purpose : To perform the backward propagation step in the network
+    #
+    # inputs  : oFGWNp - Weights of the forget gate
+    #           oIGWNp - Weights of the input gate
+    #           oCGWNp - Weights of the candidate gate
+    #           oOGWNp - Weights of the output gate
+    #           oLCWNp - Weights from LSTM cell to output
+    #           oTrainDay12 - Data of the first two days
+    #           oTrainDay34 - Data of the third and fourth day
+    #           oTrainDay56 - Data of the fifth and sixth day
+    #           oCellOutput - Output of the final cell
+    #           oFinalOut - Output of the neural network
+    #           oOutputError - Error of the output layer
+    #           oHiddenError - Error of the hidden layer
+    #
+    # outputs : oFGWNp - Updated weights of the forget gate
+    #           oIGWNp - Updated weights of the input gate
+    #           oCGWNp - Updated weights of the candidate gate
+    #           oOGWNp - Updated weights of the output gate
+    #           oLCWNp - Updated weights from LSTM cell to output
+    ###############################################################################
+    def back_propagation(oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oTrainDay12,
+                         oTrainDay34, oTrainDay56, oCellOutput, oFinalOut, oOutputError,
+                         oHiddenError):
+        oLCWNp = oLCWNp + (fLearningRate *
+                           np.dot((oOutputError * (1.0 - oFinalOut)), oCellOutput.T))
+        oFGWNp = oFGWNp + \
+            (fLearningRate * np.dot((oHiddenError * oCellOutput * (1.0 - oCellOutput)),
+                                    oTrainDay12.T))
+        oIGWNp = oIGWNp + \
+            (fLearningRate * np.dot((oHiddenError * oCellOutput * (1.0 - oCellOutput)),
+                                    oTrainDay34.T))
+        oCGWNp = oCGWNp + \
+            (fLearningRate * np.dot((oHiddenError * oCellOutput * (1.0 - oCellOutput)),
+                                    oTrainDay34.T))
+        oOGWNp = oOGWNp + \
+            (fLearningRate * np.dot((oHiddenError * oCellOutput * (1.0 - oCellOutput)),
+                                    oTrainDay56.T))
 
+        return oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp
 
-    def Back_propagation(fgw, igw, cgw, ogw, l, training_1, training_2, training_3, f_out, f_output, error_in_output,
-                        error_in_cell):
-        l = l + (learning_rate *
-                np.dot((error_in_output * (1.0 - f_output)), f_out.T))
-        fgw = fgw + \
-            (learning_rate * np.dot((error_in_cell * f_out * (1.0 - f_out)), training_1.T))
-        igw = igw + \
-            (learning_rate * np.dot((error_in_cell * f_out * (1.0 - f_out)), training_2.T))
-        cgw = cgw + \
-            (learning_rate * np.dot((error_in_cell * f_out * (1.0 - f_out)), training_2.T))
-        ogw = ogw + \
-            (learning_rate * np.dot((error_in_cell * f_out * (1.0 - f_out)), training_3.T))
-        
-        return fgw, igw, cgw, ogw, l
-
-
-    def training(fgw, igw, cgw, ogw, l, cellstate, training_1, training_2, training_3, targeted_variable):
+    ###############################################################################
+    # function: training
+    #
+    # purpose : To train the network
+    #
+    # inputs  : oFGWNp - Weights of the forget gate
+    #           oIGWNp - Weights of the input gate
+    #           oCGWNp - Weights of the candidate gate
+    #           oOGWNp - Weights of the output gate
+    #           oLCWNp - Weights from LSTM cell to output
+    #           oCellStateNp - The state of the cell
+    #           oTrainDay12 - Data of the first two days
+    #           oTrainDay34 - Data of the third and fourth day
+    #           oTrainDay56 - Data of the fifth and sixth day
+    #           oTrainY - Target variable data
+    #
+    # outputs : oFGWNp - Updated weights of the forget gate
+    #           oIGWNp - Updated weights of the input gate
+    #           oCGWNp - Updated weights of the candidate gate
+    #           oOGWNp - Updated weights of the output gate
+    #           oLCWNp - Updated weights from LSTM cell to output
+    #           oFinalOut - Output of the neural network
+    ###############################################################################
+    def training(oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oCellStateNp, oTrainDay12,
+                 oTrainDay34, oTrainDay56, oTrainY):
         # convert lists to 2d arrays
-        training_1 = np.array(training_1, ndmin=2).T
-        training_2 = np.array(training_2, ndmin=2).T
-        training_3 = np.array(training_3, ndmin=2).T
-        targeted_variable = np.array(targeted_variable, ndmin=2).T
+        oTrainDay12 = np.array(oTrainDay12, ndmin=2).T
+        oTrainDay34 = np.array(oTrainDay34, ndmin=2).T
+        oTrainDay56 = np.array(oTrainDay56, ndmin=2).T
+        oTrainY = np.array(oTrainY, ndmin=2).T
 
         # calling the forward propagation
-        f_output, f_out = forward_propagation(cellstate, 
-            training_1, training_2, training_3)
+        oFinalOut, oCellOutput = forward_propagation(oCellStateNp,
+                                                     oTrainDay12, oTrainDay34,
+                                                     oTrainDay56)
 
         # Calcualting the errors in output and cell
-        error_in_output, error_in_cell = errors(targeted_variable, f_output)
+        oOutputError, oHiddenError = errors(oTrainY, oFinalOut)
 
         # Calling the back propagation after calculating the errors
-        fgw, igw, cgw, ogw, l = Back_propagation(fgw, igw, cgw, ogw, l, training_1, training_2, training_3, f_out, f_output, error_in_output,
-                            error_in_cell)
+        oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp = back_propagation(oFGWNp, oIGWNp,
+                                                                  oCGWNp, oOGWNp,
+                                                                  oLCWNp,
+                                                                  oTrainDay12,
+                                                                  oTrainDay34,
+                                                                  oTrainDay56,
+                                                                  oCellOutput,
+                                                                  oFinalOut,
+                                                                  oOutputError,
+                                                                  oHiddenError)
 
-        return fgw, igw, cgw, ogw, l, f_output
+        return oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oFinalOut
 
-
-    def testing(cellstate, testing_1, testing_2, testing_3):
+    ###############################################################################
+    # function: testing
+    #
+    # purpose : To test the network
+    #
+    # inputs  : oCellStateNp - The state of the cell
+    #           oTestDay12 - Test data of the first two days
+    #           oTestDay34 - Test data of the third and fourth day
+    #           oTestDay56 - Test data of the fifth and sixth day
+    #
+    # outputs : oFinalOut - Output of the neural network
+    ###############################################################################
+    def testing(oCellStateNp, oTestDay12, oTestDay34, oTestDay56):
         # transpose input
-        testing_1 = testing_1.T
-        testing_2 = testing_2.T
-        testing_3 = testing_3.T
+        oTestDay12 = oTestDay12.T
+        oTestDay34 = oTestDay34.T
+        oTestDay56 = oTestDay56.T
         # Calling forward propagation for testing
-        f_output, f_out = forward_propagation(cellstate, testing_1, testing_2, testing_3)
+        oFinalOut, oCellOutput = forward_propagation(
+            oCellStateNp, oTestDay12, oTestDay34, oTestDay56)
         # return final input
-        return f_output
+        return oFinalOut
 
-    input_nodes = 2
-    cell_weights = 2
-    output_nodes = 1
-    learning_rate = 0.5
+    iInputNodes = 2
+    iCellWeights = 2
+    fLearningRate = 0.5
 
     # Setting the number of nodes in each input, hidden and output layers
 
-    # fgw = Forget gate's weights
-    fgw = np.random.randn(input_nodes, cell_weights).T
+    # oFGWNp = Forget gate's weights
+    oFGWNp = np.random.randn(iInputNodes, iCellWeights).T
 
-    # igw = Input gate's weights
-    igw = np.random.randn(input_nodes, cell_weights).T
+    # oIGWNp = Input gate's weights
+    oIGWNp = np.random.randn(iInputNodes, iCellWeights).T
 
-    # ogw = Output gate's weights
-    ogw = np.random.randn(input_nodes, cell_weights).T
+    # oOGWNp = Output gate's weights
+    oOGWNp = np.random.randn(iInputNodes, iCellWeights).T
 
-    # cgw = Candidate gate's weights
-    cgw = np.random.randn(input_nodes, cell_weights).T
+    # oCGWNp = Candidate gate's weights
+    oCGWNp = np.random.randn(iInputNodes, iCellWeights).T
 
-    # l = weights from LSTM cells to output
-    l = np.random.randn(2, 1).T
+    # oLCWNp = weights from LSTM cells to output
+    oLCWNp = np.random.randn(2, 1).T
 
     # Default LSTM cell states are declared below
-    cellstate = [[1, 1] for j in range(100)]
-    cellstate = np.array(cellstate, dtype=float)
-    cellstate = np.array(cellstate, ndmin=2).T
+    oCellStateNp = [[1, 1] for j in range(100)]
+    oCellStateNp = np.array(oCellStateNp, dtype=float)
+    oCellStateNp = np.array(oCellStateNp, ndmin=2).T
 
-    data = pd.read_csv(url)
-    data = data[column]
-    #normalization value
-    n_value=1000
-    #1st two days
-    training_1 = [[data[j-6], data[j-5]] for j in range(len(data[:570])) if j >= 6]
-    #3rd and 4th day
-    training_2 = [[data[j-4], data[j-3]] for j in range(len(data[:570])) if j >= 6]
-    #5th and 6th day
-    training_3 = [[data[j-2], data[j-1]] for j in range(len(data[:570])) if j >= 6]
-    #7th day or targeted train_pred
-    training_y = [[j] for j in data[6:570]]
+    oDataDf = pd.read_csv(sURL)
+    oDataDf = oDataDf[sColumn]
+    # normalization value
+    iNormVal = 1000
+    # 1st two days
+    oTrainDay12 = [[oDataDf[j-6], oDataDf[j-5]]
+                   for j in range(len(oDataDf[:570])) if j >= 6]
+    # 3rd and 4th day
+    oTrainDay34 = [[oDataDf[j-4], oDataDf[j-3]]
+                   for j in range(len(oDataDf[:570])) if j >= 6]
+    # 5th and 6th day
+    oTrainDay56 = [[oDataDf[j-2], oDataDf[j-1]]
+                   for j in range(len(oDataDf[:570])) if j >= 6]
+    # 7th day or targeted train_pred
+    oTrainY = [[j] for j in oDataDf[6:570]]
 
-    #convert into arrays
-    training_1 = np.array(training_1, dtype=float)
-    training_2 = np.array(training_2, dtype=float)
-    training_3 = np.array(training_3, dtype=float)
-    training_y = np.array(training_y, dtype=float)
+    # convert into arrays
+    oTrainDay12 = np.array(oTrainDay12, dtype=float)
+    oTrainDay34 = np.array(oTrainDay34, dtype=float)
+    oTrainDay56 = np.array(oTrainDay56, dtype=float)
+    oTrainY = np.array(oTrainY, dtype=float)
 
     # Normalize
-    training_1= training_1/n_value
-    training_2 = training_2/n_value
-    training_3 = training_3/n_value
-    training_y = training_y/n_value
+    oTrainDay12 = oTrainDay12/iNormVal
+    oTrainDay34 = oTrainDay34/iNormVal
+    oTrainDay56 = oTrainDay56/iNormVal
+    oTrainY = oTrainY/iNormVal
 
     # create neural networks
 
     # number of training cycles
-    train_cycles = 100
+    iTrainCycles = 100
     # training the LSTM network
-    for c in range(train_cycles):
-        print("Training cycle: "+str(c))
-    for n in training_1:
-        fgw, igw, cgw, ogw, l, training_prediction = training(fgw, igw, cgw, ogw, l, cellstate, training_1, training_2, training_3, training_y)
+    for iTrainCycle in range(iTrainCycles):
+        print("Training cycle: "+str(iTrainCycle))
+    for oTrainDay in oTrainDay12:
+        oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oTrainPredNp = training(
+            oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oCellStateNp, oTrainDay12,
+            oTrainDay34, oTrainDay56, oTrainY)
 
-    # Determinning errors
+    # Determining errors
 
-    error_mse_train, error_rmse_train=error_function(training_y,training_prediction)
-    print("Mean squared error of train data: "+ str(error_mse_train))
-    print("Root mean squared error of train data: "+ str(error_rmse_train))
+    fTrainMSE, fTrainRMSE = error_function(
+        oTrainY, oTrainPredNp)
+    print("Mean squared error of train data: " + str(fTrainMSE))
+    print("Root mean squared error of train data: " + str(fTrainRMSE))
     # de-Normalize
-    training_prediction = np.array(training_prediction, dtype=float)
-    training_prediction *=n_value
-    training_y *=n_value*10
+    oTrainPredNp = np.array(oTrainPredNp, dtype=float)
+    oTrainPredNp *= iNormVal
+    oTrainY *= iNormVal*10
 
     # transpose
-    training_prediction = training_prediction.T
+    oTrainPredNp = oTrainPredNp.T
 
+    oTestDay12 = [[oDataDf[j - 6], oDataDf[j - 5]] for j in range(570, 670)]
+    oTestDay34 = [[oDataDf[j - 4], oDataDf[j - 3]] for j in range(570, 670)]
+    oTestDay56 = [[oDataDf[j - 2], oDataDf[j - 1]] for j in range(570, 670)]
+    oTestY = [[j] for j in oDataDf[570:670]]
 
-
-
-    testing_1 = [[data[j - 6], data[j - 5]] for j in range(570, 670)]
-    testing_2 = [[data[j - 4], data[j - 3]] for j in range(570, 670)]
-    testing_3 = [[data[j - 2], data[j - 1]] for j in range(570, 670)]
-    testing_y = [[j] for j in data[570:670]]
-
-    testing_1 = np.array(testing_1, dtype=float)
-    testing_2 = np.array(testing_2, dtype=float)
-    testing_3 = np.array(testing_3, dtype=float)
-    testing_y = np.array(testing_y, dtype=float)
-
+    oTestDay12 = np.array(oTestDay12, dtype=float)
+    oTestDay34 = np.array(oTestDay34, dtype=float)
+    oTestDay56 = np.array(oTestDay56, dtype=float)
+    oTestY = np.array(oTestY, dtype=float)
 
     # Normalization
 
-    testing_1 = testing_1/n_value
-    testing_2 = testing_2/n_value
-    testing_3 = testing_3/n_value
-    testing_y = testing_y/n_value
+    oTestDay12 = oTestDay12/iNormVal
+    oTestDay34 = oTestDay34/iNormVal
+    oTestDay56 = oTestDay56/iNormVal
+    oTestY = oTestY/iNormVal
 
     # test_pred the network with unseen data
-    testing_prediction = testing(cellstate, testing_1, testing_2, testing_3)
-    testing_prediction = np.array(testing_prediction, dtype=float)
+    oTestPredNp = testing(oCellStateNp, oTestDay12, oTestDay34, oTestDay56)
+    oTestPredNp = np.array(oTestPredNp, dtype=float)
 
     # print various accuracies
-    error_mse_test, error_rmse_test=error_function(testing_y, testing_prediction)
-    print("Mean squared error of test data: "+ str(error_mse_test))
-    print("Root mean squared error of test data: "+ str(error_rmse_test))
+    fTestMSE, fTestRMSE = error_function(
+        oTestY, oTestPredNp)
+    print("Mean squared error of test data: " + str(fTestMSE))
+    print("Root mean squared error of test data: " + str(fTestRMSE))
 
     # de-Normalize data
-    testing_prediction = testing_prediction * n_value
+    oTestPredNp = oTestPredNp * iNormVal
 
-    testing_y = testing_y * n_value*10
-
+    oTestY = oTestY * iNormVal*10
 
     # transplose test_pred results
-    testing_prediction = testing_prediction.T
-
-
+    oTestPredNp = oTestPredNp.T
 
     # plotting training and test_pred results on same graph
 
-    data = data.to_frame()
+    oDataDf = oDataDf.to_frame()
 
-    plot_graphs(data[column].values[0:670], training_prediction, testing_prediction)
+    plot_graphs(oDataDf[sColumn].values[0:670],
+                oTrainPredNp, oTestPredNp)
