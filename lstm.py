@@ -15,18 +15,18 @@ import pandas as pd
 # outputs : plotted graphs
 ###############################################################################
 def plot_graphs(oRealValNp, oTrainPredNp, oTestPredNp):
-    plt.plot(oRealValNp, label="The actual value", color="red")
-    plt.plot(oTrainPredNp, label="Prediction on training data", color='blue')
+    plt.plot(oRealValNp, label="Actual Value", color="red")
+    plt.plot(oTrainPredNp, label="Predicted Value", color='blue')
     oTestPredNp = [j for j in oTestPredNp]
     # connecting training and testing lines
     oTestPredNp.insert(0, oTrainPredNp[-1])
     # X values for testing prediction plot
     plt.plot([x for x in range(len(oTrainPredNp) - 1, len(oTrainPredNp) +
-             len(oTestPredNp) - 1)], oTestPredNp, label="Prediction on testing data",
+             len(oTestPredNp) - 1)], oTestPredNp, label="Testing Prediction",
              color='green')
-    plt.xlabel("Time period in Days")
+    plt.xlabel("Days")
     plt.ylabel("Stock Price")
-    plt.title("Stock $ Prediction")
+    plt.title("Stock Price Prediction")
     plt.legend()
     plt.grid()
     plt.show()
@@ -268,7 +268,7 @@ def train_on_dataset(sURL, sColumn):
     ###############################################################################
     def training(oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oCellStateNp, oTrainDay12,
                  oTrainDay34, oTrainDay56, oTrainY):
-        # convert lists to 2d arrays
+        # convert into 2D arrays
         oTrainDay12 = np.array(oTrainDay12, ndmin=2).T
         oTrainDay34 = np.array(oTrainDay34, ndmin=2).T
         oTrainDay56 = np.array(oTrainDay56, ndmin=2).T
@@ -389,8 +389,8 @@ def train_on_dataset(sURL, sColumn):
 
     fTrainMSE, fTrainRMSE = error_function(
         oTrainY, oTrainPredNp)
-    print("Mean squared error of train data: " + str(fTrainMSE))
-    print("Root mean squared error of train data: " + str(fTrainRMSE))
+    print("MSE of train data: " + str(fTrainMSE))
+    print("RMSE of train data: " + str(fTrainRMSE))
     # de-Normalize
     oTrainPredNp = np.array(oTrainPredNp, dtype=float)
     oTrainPredNp *= iNormVal
@@ -423,8 +423,10 @@ def train_on_dataset(sURL, sColumn):
     # print various accuracies
     fTestMSE, fTestRMSE = error_function(
         oTestY, oTestPredNp)
-    print("Mean squared error of test data: " + str(fTestMSE))
-    print("Root mean squared error of test data: " + str(fTestRMSE))
+
+    # Mean squared and Root Mean Squared errors
+    print("MSE of test data: " + str(fTestMSE))
+    print("RMSE of test data: " + str(fTestRMSE))
 
     # de-Normalize data
     oTestPredNp = oTestPredNp * iNormVal
@@ -440,3 +442,5 @@ def train_on_dataset(sURL, sColumn):
 
     plot_graphs(oDataDf[sColumn].values[0:670],
                 oTrainPredNp, oTestPredNp)
+                
+train_on_dataset('https://personal.utdallas.edu/~axs210036/FB.csv', 'Close')
