@@ -1,0 +1,96 @@
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.05
+Number of iterations: 1000
+Training MSE: 0.00031103194926195157
+Training R2 Score: 0.3919150229464097
+Training Fraction of Variance Unexplained: 0.6080849770535903
+Test MSE: 0.0007901442887408244
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.05
+Number of iterations: 10000
+Training MSE: 0.0005924335083568098
+Training R2 Score: 0.9782395965412468
+Training Fraction of Variance Unexplained: 0.021760403458753186
+Test MSE: 7.540873748775224e-05
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.5
+Number of iterations: 10000
+Training MSE: 0.0006017496991356866
+Training R2 Score: 0.9777095382968746
+Training Fraction of Variance Unexplained: 0.02229046170312543
+Test MSE: 8.739263753019717e-05
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.5
+Number of iterations: 1000
+Training MSE: 0.0005927959215182403
+Training R2 Score: 0.9777874739705845
+Training Fraction of Variance Unexplained: 0.02221252602941548
+Test MSE: 7.77844366524021e-05
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.5
+Number of iterations: 10
+Training MSE: 0.0002979653273365881
+Training R2 Score: 0.14020138194696508
+Training Fraction of Variance Unexplained: 0.8597986180530349
+Test MSE: 0.0011267478060041527
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 0.5
+Number of iterations: 100
+Training MSE: 0.000318464572724993
+Training R2 Score: 0.46731442064998596
+Training Fraction of Variance Unexplained: 0.532685579350014
+Test MSE: 0.0006752511275052696
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 1
+Number of iterations: 100
+Training MSE: 0.0004328002707595271
+Training R2 Score: 0.8846603178850544
+Training Fraction of Variance Unexplained: 0.11533968211494561
+Test MSE: 6.649730582778422e-05
+
+
+The dataset used: FB.csv
+The feature used: Adj Close
+Train/Test Split: 0.8
+Size of dataset: 700
+Learning Rate Used: 3
+Number of iterations: 100
+Training MSE: 0.0007580633215382368
+Training R2 Score: 0.9045397776627055
+Training Fraction of Variance Unexplained: 0.09546022233729445
+Test MSE: 0.0004232533938489818
+
+

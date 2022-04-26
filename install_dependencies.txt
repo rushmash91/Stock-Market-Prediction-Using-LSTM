@@ -1,0 +1,6 @@
+python3 -m venv ~/python3_venv
+. ~/python3_venv/bin/activate
+pip install matplotlib
+pip install numpy
+pip install pandas
+pip install scikit-learn

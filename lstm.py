@@ -1,6 +1,47 @@
+from nbformat import write
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.metrics import r2_score
+
+
+###############################################################################
+# function: write_logs function
+#
+# purpose : To log the training parameters and model accuracy
+#           metrics
+#
+# inputs  : sURL - The dataset used
+#           sColumn - The feature used
+#           fTrainTestSplit - The train test split
+#           iDataSize - The size of the dataset
+#           fLearningRate - The learning rate
+#           iEpochs - Number of iterations
+#           fTrainMSE - The training MSE
+#           fTrainRSq - The training R2 score
+#           fTrainFVU - The training fraction of variance unexplained
+#           fTestMSE - The test MSE
+#           fRSqTest - The test R2 score
+#           fFVUTest - The test fraction of variance unexplained
+#
+# outputs : all parameters written to a log file
+###############################################################################
+def write_logs(sURL, sColumn, fTrainTestSplit, iDataSize, fLearningRate,
+               iEpochs, fTrainMSE, fTrainRSq, fTrainFVU, fTestMSE, fTestRSq,
+               fTestFVU):
+    # Opening log file
+    with open("project_logs.txt", 'a+') as f:
+        f.write("The dataset used: "+str(sURL.split('/')[-1])+"\n")
+        f.write("The feature used: "+str(sColumn)+"\n")
+        f.write("Train/Test Split: "+str(fTrainTestSplit)+"\n")
+        f.write("Size of dataset: "+str(iDataSize)+"\n")
+        f.write("Learning Rate Used: "+str(fLearningRate)+"\n")
+        f.write("Number of iterations: "+str(iEpochs)+"\n")
+        f.write("Training MSE: "+str(fTrainMSE)+"\n")
+        f.write("Training R2 Score: "+str(fTrainRSq)+"\n")
+        f.write("Training Fraction of Variance Unexplained: "+str(fTrainFVU)+"\n")
+        f.write("Test MSE: "+str(fTestMSE)+"\n")
+        f.write("\n\n")
 
 
 ###############################################################################
@@ -51,7 +92,11 @@ def error_function(oTargetNp, oPredNp):
     # root mean squared error
     fRMSE = np.sqrt(fMSE)
 
-    return fMSE, fRMSE
+    # Calculating the training R2 score and FVU
+    fRSq = r2_score(oTargetNp, oPredNp.T)
+    fFVU = 1 - fRSq
+
+    return fMSE, fRMSE, fRSq, fFVU
 
 
 ###############################################################################
@@ -279,7 +324,7 @@ def train_on_dataset(sURL, sColumn):
                                                      oTrainDay12, oTrainDay34,
                                                      oTrainDay56)
 
-        # Calcualting the errors in output and cell
+        # Calculating the errors in output and cell
         oOutputError, oHiddenError = errors(oTrainY, oFinalOut)
 
         # Calling the back propagation after calculating the errors
@@ -322,6 +367,11 @@ def train_on_dataset(sURL, sColumn):
     iInputNodes = 2
     iCellWeights = 2
     fLearningRate = 0.5
+    fTrainTestSplit = 0.8
+    iDataSize = 700
+
+    # Number of train and test samples
+    iTrainSamples = int(iDataSize * fTrainTestSplit)
 
     # Setting the number of nodes in each input, hidden and output layers
 
@@ -351,15 +401,15 @@ def train_on_dataset(sURL, sColumn):
     iNormVal = 1000
     # 1st two days
     oTrainDay12 = [[oDataDf[j-6], oDataDf[j-5]]
-                   for j in range(len(oDataDf[:570])) if j >= 6]
+                   for j in range(len(oDataDf[:iTrainSamples])) if j >= 6]
     # 3rd and 4th day
     oTrainDay34 = [[oDataDf[j-4], oDataDf[j-3]]
-                   for j in range(len(oDataDf[:570])) if j >= 6]
+                   for j in range(len(oDataDf[:iTrainSamples])) if j >= 6]
     # 5th and 6th day
     oTrainDay56 = [[oDataDf[j-2], oDataDf[j-1]]
-                   for j in range(len(oDataDf[:570])) if j >= 6]
+                   for j in range(len(oDataDf[:iTrainSamples])) if j >= 6]
     # 7th day or targeted train_pred
-    oTrainY = [[j] for j in oDataDf[6:570]]
+    oTrainY = [[j] for j in oDataDf[6:iTrainSamples]]
 
     # convert into arrays
     oTrainDay12 = np.array(oTrainDay12, dtype=float)
@@ -376,21 +426,23 @@ def train_on_dataset(sURL, sColumn):
     # create neural networks
 
     # number of training cycles
-    iTrainCycles = 100
+    iEpochs = 1000
+
     # training the LSTM network
-    for iTrainCycle in range(iTrainCycles):
-        print("Training cycle: "+str(iTrainCycle))
-    for oTrainDay in oTrainDay12:
+    for iEpoch in range(iEpochs):
+        print("Training cycle: ", iEpoch)
         oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oTrainPredNp = training(
             oFGWNp, oIGWNp, oCGWNp, oOGWNp, oLCWNp, oCellStateNp, oTrainDay12,
             oTrainDay34, oTrainDay56, oTrainY)
 
     # Determining errors
 
-    fTrainMSE, fTrainRMSE = error_function(
-        oTrainY, oTrainPredNp)
+    fTrainMSE, fTrainRMSE, fTrainRSq, fTrainFVU = error_function(oTrainY,
+                                                                 oTrainPredNp)
     print("Mean squared error of train data: " + str(fTrainMSE))
     print("Root mean squared error of train data: " + str(fTrainRMSE))
+    print("R2 Score of train data: " + str(fTrainRSq))
+    print("Fraction of Variance Unexplained of train data: " + str(fTrainFVU))
     # de-Normalize
     oTrainPredNp = np.array(oTrainPredNp, dtype=float)
     oTrainPredNp *= iNormVal
@@ -399,10 +451,13 @@ def train_on_dataset(sURL, sColumn):
     # transpose
     oTrainPredNp = oTrainPredNp.T
 
-    oTestDay12 = [[oDataDf[j - 6], oDataDf[j - 5]] for j in range(570, 670)]
-    oTestDay34 = [[oDataDf[j - 4], oDataDf[j - 3]] for j in range(570, 670)]
-    oTestDay56 = [[oDataDf[j - 2], oDataDf[j - 1]] for j in range(570, 670)]
-    oTestY = [[j] for j in oDataDf[570:670]]
+    oTestDay12 = [[oDataDf[j - 6], oDataDf[j - 5]]
+                  for j in range(iTrainSamples, iDataSize)]
+    oTestDay34 = [[oDataDf[j - 4], oDataDf[j - 3]]
+                  for j in range(iTrainSamples, iDataSize)]
+    oTestDay56 = [[oDataDf[j - 2], oDataDf[j - 1]]
+                  for j in range(iTrainSamples, iDataSize)]
+    oTestY = [[j] for j in oDataDf[iTrainSamples:iDataSize]]
 
     oTestDay12 = np.array(oTestDay12, dtype=float)
     oTestDay34 = np.array(oTestDay34, dtype=float)
@@ -421,18 +476,25 @@ def train_on_dataset(sURL, sColumn):
     oTestPredNp = np.array(oTestPredNp, dtype=float)
 
     # print various accuracies
-    fTestMSE, fTestRMSE = error_function(
-        oTestY, oTestPredNp)
+    fTestMSE, fTestRMSE, fTestRSq, fTestFVU = error_function(oTestY,
+                                                             oTestPredNp)
     print("Mean squared error of test data: " + str(fTestMSE))
     print("Root mean squared error of test data: " + str(fTestRMSE))
+    print("R2 Score of test data: " + str(fTestRSq))
+    print("Fraction of Variance Unexplained of test data: " + str(fTestFVU))
 
     # de-Normalize data
     oTestPredNp = oTestPredNp * iNormVal
 
     oTestY = oTestY * iNormVal*10
 
-    # transplose test_pred results
+    # transpose test_pred results
     oTestPredNp = oTestPredNp.T
+
+    # Writing the logs to a log file
+    write_logs(sURL, sColumn, fTrainTestSplit, iDataSize, fLearningRate,
+               iEpochs, fTrainMSE, fTrainRSq, fTrainFVU, fTestMSE, fTestRSq,
+               fTestFVU)
 
     # plotting training and test_pred results on same graph
 
