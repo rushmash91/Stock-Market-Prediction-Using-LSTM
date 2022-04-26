@@ -1,3 +1,9 @@
+## Team Members:
+Anand Shankar(axs210036)	
+Arush Sharma(axs200241)	 
+Bhargava Guruvula(bdg200002)	             
+Harish Gontu(hxg200007)
+
 ## Dataset Used:
 1. https://personal.utdallas.edu/~axs210036/FB.csv
 2. https://personal.utdallas.edu/~axs210036/SAGE.csv
