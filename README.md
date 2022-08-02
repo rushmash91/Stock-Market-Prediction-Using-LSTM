@@ -1,8 +1,8 @@
-## Team Members:
-Anand Shankar
-Arush Sharma
-Bhargava Guruvula             
-Harish Gontu
+## Authors:
+Arush Sharma <br />
+Anand Shankar <br />
+Bhargava Guruvula <br />            
+Harish Gontu Anand <br />
 
 ## Dataset Used:
 1. https://personal.utdallas.edu/~axs210036/FB.csv
