@@ -2,7 +2,7 @@
 Arush Sharma <br />
 Anand Shankar <br />
 Bhargava Guruvula <br />            
-Harish Gontu Anand <br />
+Harish Gontu <br />
 
 ## Dataset Used:
 1. https://personal.utdallas.edu/~axs210036/FB.csv
