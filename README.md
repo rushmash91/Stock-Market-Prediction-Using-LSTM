@@ -1,8 +1,12 @@
+## About
+Strategies related to the stock market are quite complicated and rely on a massive amount of data. One of the most difficult tasks for the investors and experts has been the prediction of stock prices.
+Many machine learning techniques have been developed as a result of extensive research to handle complicated computational issues and increase predictive capacities without being explicitly programmed. This project aims to investigate the capabilities of Long Short Term Memory, a form of Recurrent Neural Network, in predicting future stock values.
+
 ## Authors:
 Arush Sharma <br />
 Anand Shankar <br />
-Bhargava Guruvula <br />            
 Harish Gontu <br />
+Bhargava Guruvula <br />            
 
 ## Dataset Used:
 1. https://personal.utdallas.edu/~axs210036/FB.csv
